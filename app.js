@@ -105,7 +105,7 @@ function updateNet() {
 }
 
 function addReceipt(row) {
-  state.receipt.push({ time: new Date().toLocaleTimeString(), ...row });
+  state.receipt.push({ time: new Date().toLocaleTimeString('en-US'), ...row });
   const tb = $('#receipt tbody');
   tb.innerHTML = state.receipt.map(r => `<tr><td>${r.time}</td><td>${r.step}</td><td><span class="where" data-w="${r.where}">${r.where}</span></td><td>${r.chars}</td><td>${r.leaked}</td></tr>`).join('');
   $('#receipt-empty').hidden = state.receipt.length > 0;
