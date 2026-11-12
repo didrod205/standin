@@ -21,6 +21,17 @@ Live app: https://didrod205.github.io/standin/
 
 Each response's `inferenceSource` (reported by Firebase AI Logic) is written into the privacy receipt, so the user sees where every call actually ran.
 
+## What you see in each environment
+
+| Browser | Status chip | Found-detail tags | Receipt "Ran" for masking |
+|---|---|---|---|
+| Chrome desktop 139+ with Gemini Nano available | green dot, "On-device model: Gemini Nano ready" | `Nano` for items the model found, `local rule` for items the rules found | `ON_DEVICE` (from Firebase AI Logic `inferenceSource`) |
+| Any browser without a usable on-device model | grey dot, "On-device model: not available here", plus the note "On-device model not available in this browser. Masking runs locally with on-device rules; nothing is sent." | `local rule` | `ON_DEVICE (rules)` |
+
+In both cases the masking step never calls the cloud. If the on-device model is missing, or returns something that is not valid JSON, the app falls back to the local rules and says so.
+
+Note on the demo video: it was recorded in a browser where Gemini Nano did not actually run (the Prompt API was present but returned no usable answer), so the video shows the local-rules path for masking and the real cloud path for writing. The Nano path is implemented in `app.js` (`InferenceMode.ONLY_ON_DEVICE` with a JSON schema) but is not shown running in the video.
+
 ## How Firebase AI Logic is used (code)
 
 - `app.js` imports `getAI`, `getGenerativeModel`, `GoogleAIBackend`, `InferenceMode` and `Schema` from the Firebase JS SDK 13.3.0 and calls `generateContent()` at runtime.

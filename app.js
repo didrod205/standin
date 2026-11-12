@@ -79,22 +79,24 @@ const TASKS = {
 };
 
 function setStatus(el, text, tone) { el.textContent = text; el.dataset.tone = tone; }
+function setMaskNote(text) { const n = document.querySelector('#mask-note'); if (n) { n.textContent = text; n.hidden = false; } }
 
 async function checkDevice() {
   const chip = $('#chip-device');
   if (!('LanguageModel' in self)) {
     state.device = 'unavailable';
-    setStatus(chip, 'On-device model: not in this browser. Masking uses local rules only.', 'warn');
+    setStatus(chip, 'On-device model: not available here', 'info'); setMaskNote('On-device model not available in this browser. Masking runs locally with on-device rules; nothing is sent.');
     return;
   }
   try {
     const a = await self.LanguageModel.availability({ expectedInputs: [{ type: 'text', languages: ['en'] }], expectedOutputs: [{ type: 'text', languages: ['en'] }] });
     state.device = a;
-    const msg = { available: 'On-device model: ready', downloadable: 'On-device model: can be downloaded (press Mask)', downloading: 'On-device model: downloading', unavailable: 'On-device model: not supported on this device. Masking uses local rules only.' }[a] || `On-device model: ${a}`;
-    setStatus(chip, msg, a === 'available' ? 'ok' : 'warn');
+    const msg = { available: 'On-device model: Gemini Nano ready', downloadable: 'On-device model: can be downloaded (press Mask)', downloading: 'On-device model: downloading', unavailable: 'On-device model: not available here' }[a] || `On-device model: ${a}`;
+    setStatus(chip, msg, a === 'available' ? 'ok' : 'info');
+    if (a === 'unavailable') setMaskNote('On-device model not available in this browser. Masking runs locally with on-device rules; nothing is sent.');
   } catch (e) {
     state.device = 'unavailable';
-    setStatus(chip, 'On-device model: check failed. Masking uses local rules only.', 'warn');
+    setStatus(chip, 'On-device model: not available here', 'info'); setMaskNote('On-device model not available in this browser. Masking runs locally with on-device rules; nothing is sent.');
   }
 }
 
@@ -114,7 +116,7 @@ function esc(s) { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 function renderItems() {
   const box = $('#items');
   if (!state.items.length) { box.innerHTML = '<p class="muted">Nothing found yet.</p>'; return; }
-  box.innerHTML = state.items.map((it, i) => `<button class="item ${it.on ? 'on' : ''}" data-i="${i}" title="${it.by === 'device' ? 'Found by the on-device model' : it.by === 'rule' ? 'Found by a local rule' : 'Added by you'}"><span class="k">${KIND_LABEL[it.kind]}</span>${esc(it.value)}<span class="by">${it.by}</span></button>`).join('');
+  box.innerHTML = state.items.map((it, i) => `<button class="item ${it.on ? 'on' : ''}" data-i="${i}" title="${it.by === 'device' ? 'Found by the on-device model' : it.by === 'rule' ? 'Found by a local rule' : 'Added by you'}"><span class="k">${KIND_LABEL[it.kind]}</span>${esc(it.value)}<span class="by">${it.by === 'rule' ? 'local rule' : it.by === 'device' ? 'Nano' : 'you'}</span></button>`).join('');
   box.querySelectorAll('.item').forEach(b => b.onclick = () => { const it = state.items[+b.dataset.i]; it.on = !it.on; refreshOutbound(); });
 }
 
@@ -144,7 +146,7 @@ async function runMask() {
   if (state.device !== 'unavailable') {
     try {
       if (!state.deviceReady && maskModel.initializeDeviceModel) {
-        await maskModel.initializeDeviceModel(p => setStatus($('#chip-device'), `On-device model: downloading ${Math.round(p * 100)}%`, 'warn'));
+        await maskModel.initializeDeviceModel(p => setStatus($('#chip-device'), `On-device model: downloading ${Math.round(p * 100)}%`, 'info'));
         state.deviceReady = true;
       }
       const prompt = `List every private detail in the text below that could identify a real person or their situation: people's names, organizations, places, street addresses, health conditions, money amounts, ID numbers. Copy each value exactly as written. Return JSON.\n\nTEXT:\n${text}`;
@@ -154,16 +156,18 @@ async function runMask() {
       if (!Array.isArray(parsed.items)) throw new Error('The on-device model returned no list');
       modelItems = (parsed.items || []).map(f => ({ ...f, by: 'device' }));
       where = String(res.response.inferenceSource || 'ON_DEVICE').toUpperCase();
+      setMaskNote('Masked on this device by Gemini Nano plus local rules; nothing was sent.');
       await checkDevice();
     } catch (e) {
       console.warn('On-device masking unavailable:', e);
-      setStatus($('#chip-device'), 'On-device model: answer unusable. Masked with local rules.', 'warn');
+      setStatus($('#chip-device'), 'On-device model: not available here', 'info');
+      setMaskNote('On-device model not available in this browser. Masking runs locally with on-device rules; nothing is sent.');
       $('#chip-device').title = e.message;
     }
   }
   const manual = state.items.filter(i => i.by === 'you');
   state.items = mergeFindings(text, [modelItems, rule, manual]);
-  addReceipt({ step: 'Find private details', where, chars: 0, leaked: 0 });
+  addReceipt({ step: 'Find private details', where: where === 'local rules only' ? 'ON_DEVICE (rules)' : where, chars: 0, leaked: 0 });
   refreshOutbound();
   btn.disabled = false; btn.textContent = 'Mask again';
   $('#step2').classList.add('live');
