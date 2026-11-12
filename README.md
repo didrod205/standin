@@ -25,7 +25,7 @@ Each response's `inferenceSource` (reported by Firebase AI Logic) is written int
 
 | Browser | Status chip | Found-detail tags | Receipt "Ran" for masking |
 |---|---|---|---|
-| Chrome desktop 139+ with Gemini Nano available | green dot, "On-device model: Gemini Nano ready" | `Nano` for items the model found, `local rule` for items the rules found | `ON_DEVICE` (from Firebase AI Logic `inferenceSource`) |
+| Chrome desktop 139+ with Gemini Nano available | grey dot "On-device model: detected, checked on first use", then green dot "On-device model: Gemini Nano working" after the first valid on-device answer | `Nano` for items the model found, `local rule` for items the rules found | `ON_DEVICE` (from Firebase AI Logic `inferenceSource`) |
 | Any browser without a usable on-device model | grey dot, "On-device model: not available here", plus the note "On-device model not available in this browser. Masking runs locally with on-device rules; nothing is sent." | `local rule` | `ON_DEVICE (rules)` |
 
 In both cases the masking step never calls the cloud. If the on-device model is missing, or returns something that is not valid JSON, the app falls back to the local rules and says so.

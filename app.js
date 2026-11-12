@@ -91,8 +91,8 @@ async function checkDevice() {
   try {
     const a = await self.LanguageModel.availability({ expectedInputs: [{ type: 'text', languages: ['en'] }], expectedOutputs: [{ type: 'text', languages: ['en'] }] });
     state.device = a;
-    const msg = { available: 'On-device model: Gemini Nano ready', downloadable: 'On-device model: can be downloaded (press Mask)', downloading: 'On-device model: downloading', unavailable: 'On-device model: not available here' }[a] || `On-device model: ${a}`;
-    setStatus(chip, msg, a === 'available' ? 'ok' : 'info');
+    const msg = { available: 'On-device model: detected, checked on first use', downloadable: 'On-device model: can be downloaded (press Mask)', downloading: 'On-device model: downloading', unavailable: 'On-device model: not available here' }[a] || `On-device model: ${a}`;
+    setStatus(chip, msg, 'info');
     if (a === 'unavailable') setMaskNote('On-device model not available in this browser. Masking runs locally with on-device rules; nothing is sent.');
   } catch (e) {
     state.device = 'unavailable';
@@ -157,7 +157,8 @@ async function runMask() {
       modelItems = (parsed.items || []).map(f => ({ ...f, by: 'device' }));
       where = String(res.response.inferenceSource || 'ON_DEVICE').toUpperCase();
       setMaskNote('Masked on this device by Gemini Nano plus local rules; nothing was sent.');
-      await checkDevice();
+      setStatus($('#chip-device'), 'On-device model: Gemini Nano working', 'ok');
+      state.nanoOk = true;
     } catch (e) {
       console.warn('On-device masking unavailable:', e);
       setStatus($('#chip-device'), 'On-device model: not available here', 'info');
