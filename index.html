@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Standin: the cloud writes with stand-ins, your device keeps the real names</title>
+<meta name="description" content="Get cloud-quality writing help on sensitive notes. An on-device model swaps private details for stand-ins before anything leaves your browser, and swaps them back after.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark">[ ]</span> Standin</div>
+  <div class="chips">
+    <span id="chip-device" class="chip" data-tone="warn">On-device model: checking</span>
+    <span id="chip-net" class="chip" data-tone="ok">Network: online</span>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>The cloud writes the letter.<br>It never learns <em>who</em> it is about.</h1>
+  <p>Paste sensitive notes. A model running inside your browser swaps every name, address and health detail for a stand-in like <code>[PERSON_1]</code>. Only the masked text goes to the cloud model. The real details are put back on your device.</p>
+</section>
+
+<main class="flow">
+  <section class="panel" id="step1">
+    <div class="ph"><span class="n">1</span><div><h2>Your notes</h2><p class="where-tag dev">stays on this device</p></div></div>
+    <textarea id="input" spellcheck="false" placeholder="Paste a messy situation: a dispute with a landlord, a medical bill, an HR complaint..."></textarea>
+    <div class="row">
+      <button id="btn-sample" class="ghost">Use sample notes</button>
+      <button id="btn-mask" class="primary">Mask on this device</button>
+    </div>
+    <h3>Found private details <span class="muted small">(tap to keep or hide)</span></h3>
+    <div id="items" class="items"></div>
+    <div class="row add">
+      <input id="manual" placeholder="Hide another exact phrase">
+      <button id="btn-add" class="ghost">Hide</button>
+    </div>
+  </section>
+
+  <section class="panel" id="step2">
+    <div class="ph"><span class="n">2</span><div><h2>What leaves this device</h2><p class="where-tag out">sent to the cloud model</p></div></div>
+    <div class="meter">
+      <div><b id="count-hidden">0</b><span>details replaced</span></div>
+      <div><b id="count-leak">0</b><span>real details in outbound text</span></div>
+    </div>
+    <pre id="outbound" class="outbound"></pre>
+    <p id="leak-warn" class="warn" hidden>A real detail is still in the outbound text. Sending is blocked.</p>
+    <label class="lbl" for="task">Ask for</label>
+    <select id="task">
+      <option value="letter">A formal letter</option>
+      <option value="email">A short email</option>
+      <option value="summary">A summary for a lawyer or caseworker</option>
+      <option value="plain">Plain English version</option>
+      <option value="custom">Something else...</option>
+    </select>
+    <input id="custom" placeholder="Describe what you need" hidden>
+    <button id="btn-write" class="primary" disabled>Write with stand-ins</button>
+    <details class="keep"><summary>Stand-in key (kept in this tab only)</summary><ul id="keep-list"></ul></details>
+  </section>
+
+  <section class="panel" id="step3">
+    <div class="ph"><span class="n">3</span><div><h2>Your draft, real names back</h2><p class="where-tag dev">restored on this device</p></div></div>
+    <div id="result" class="result"><span class="muted">The finished draft appears here, with your real details restored and highlighted.</span></div>
+    <p id="restore-note" class="small muted"></p>
+    <div class="row">
+      <button id="btn-copy" class="ghost" disabled>Copy draft</button>
+      <button id="toggle-raw" class="ghost">Show what the cloud returned</button>
+    </div>
+    <pre id="cloud-raw" class="outbound" hidden></pre>
+  </section>
+</main>
+
+<section class="receipt-wrap">
+  <div class="rh"><h2>Privacy receipt</h2><button id="btn-receipt" class="ghost">Download receipt</button></div>
+  <p class="small muted">Every AI call, where it actually ran (reported by Firebase AI Logic), and how much text left the device.</p>
+  <table id="receipt"><thead><tr><th>Time</th><th>Step</th><th>Ran</th><th>Characters sent</th><th>Private details sent</th></tr></thead><tbody></tbody></table>
+  <p id="receipt-empty" class="muted small">No AI calls yet.</p>
+</section>
+
+<footer class="foot">
+  <p>Finding private details runs only on the on-device model (Gemini Nano in Chrome) or local rules. It never falls back to the cloud. Writing prefers the cloud model and falls back to the device when you are offline. Built with Firebase AI Logic hybrid inference. Built with Claude (AI agent).</p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
